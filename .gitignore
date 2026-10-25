@@ -15,3 +15,5 @@ data/
 
 # Test araçlarının oluşturduğu dosyalar
 .pytest_cache/
+# İndirilen hazır model dosyaları
+models/
