@@ -1,0 +1,17 @@
+# Projeye özel Python ortamı
+.venv/
+
+# Python'un otomatik oluşturduğu dosyalar
+__pycache__/
+*.pyc
+
+# Gizli anahtarlar ve yerel ayarlar
+.env
+.env.*
+!.env.example
+
+# Ham ve işlenmiş veriler
+data/
+
+# Test araçlarının oluşturduğu dosyalar
+.pytest_cache/
