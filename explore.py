@@ -4,6 +4,7 @@ import unicodedata
 import fasttext
 import pandas as pd
 
+import sqlite3
 
 # 1. Kaynak dosyanın yolunu oluştur.
 project_dir = Path(__file__).resolve().parent
@@ -243,5 +244,72 @@ print(
     .sample(n=min(20, len(long_non_english)), random_state=42)
     .to_string(index=False)
 )
+# 14. Dil sonuçlarını SQLite'a kaydet.
+database_path = project_dir / "data" / "processed" / "reviews.sqlite3"
 
-print("\nExploration completed. No files were modified.")
+model_name = "lid.176.bin"
+preparation_version = "v1"
+
+prediction_records = []
+
+for row in zoom_analysis.itertuples(index=False):
+    score = (
+        None
+        if pd.isna(row.language_score)
+        else float(row.language_score)
+    )
+
+    margin = (
+        None
+        if pd.isna(row.language_margin)
+        else float(row.language_margin)
+    )
+
+    prediction_records.append((
+        row.reviewId,
+        model_name,
+        preparation_version,
+        row.language_candidate,
+        score,
+        margin,
+    ))
+
+connection = sqlite3.connect(database_path)
+connection.execute("PRAGMA foreign_keys = ON")
+
+try:
+    connection.executemany("""
+        INSERT INTO language_predictions (
+            review_id,
+            model_name,
+            preparation_version,
+            language_candidate,
+            language_score,
+            language_margin
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+
+        ON CONFLICT (
+            review_id,
+            model_name,
+            preparation_version
+        )
+        DO UPDATE SET
+            language_candidate = excluded.language_candidate,
+            language_score = excluded.language_score,
+            language_margin = excluded.language_margin
+    """, prediction_records)
+
+    connection.commit()
+
+    saved_count = connection.execute("""
+        SELECT COUNT(*)
+        FROM language_predictions
+        WHERE model_name = ?
+          AND preparation_version = ?
+    """, (model_name, preparation_version)).fetchone()[0]
+
+    print("\nStored language results for this model/version:", saved_count)
+
+finally:
+    connection.close()
