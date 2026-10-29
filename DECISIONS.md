@@ -54,3 +54,39 @@ After ignoring case differences and standardizing whitespace in a separate match
 This produced 2,650 candidate records. I preserved the original comments and ratings and stored review decisions in separate tables.
 
 I also created 1,465 text groups so that equivalent comments can stay together during the training/test split. The split has not been performed yet. These candidates are not a fully verified gold dataset; many sentiment labels still come from star ratings.
+
+## 005 — First sentiment model A1 and evaluation before A2
+
+Before starting model training, I chose word-based TF-IDF with single words and two-word combinations, followed by logistic regression. I wanted to start with a simple approach that would help me understand which words and expressions influenced the predictions. I decided to try character-based features later and compare the results.
+
+I used a custom tokenizer to keep emojis and expressions such as “can't” together. Two-word combinations also allowed the model to use expressions such as “not good”. The sentiment model was trained on my project data without using a pretrained sentiment model.
+
+From the 2,650 candidates, I reserved 30 comments for development and 100 for the final test. I manually labelled these comments based on their content. I kept their text groups out of training, leaving 2,520 training records: 462 negative, 104 neutral and 1,954 positive.
+
+Two development comments were marked as unclear, so I evaluated the model on the remaining 28. I kept the final test separate and did not generate predictions for it.
+
+I called the first model A1. I started without class weighting so that I could use its results as a reference for later experiments.
+
+For the first evaluation, I used five-fold cross-validation while keeping each text group together. In each fold, TF-IDF was learned only from the training part. This prevented the model from learning the vocabulary from the comments used for validation.
+
+The average cross-validation macro-F1 was 0.5366. On the manually labelled development comments, the model correctly classified 23 out of 28 comments, giving an accuracy of 82.14% and a macro-F1 of 0.5644. However, it did not predict any comment as neutral.
+
+I did not consider the development result enough to judge the model because it contained only 28 usable comments, including just two neutral comments. I also kept in mind that cross-validation used the existing training labels, many of which came from star ratings, while development used my manual labels.
+
+Before moving to A2, I checked the tokenizer and examined the results more closely. All ten tokenizer checks passed. Some unusual tokens came from spelling mistakes or unclear source comments rather than a confirmed tokenizer problem. This also showed that a comment predicted as English was not necessarily understandable or suitable for sentiment training.
+
+I then collected out-of-fold predictions, meaning that each training comment was predicted by a model that had not trained on its text group. I measured the results both by individual records and by giving each text group equal weight. This helped me see how repeated comments affected the evaluation.
+
+This check revealed a problem with the first split. In one validation fold, all 426 positive records belonged to a single text group. The record counts were reasonably balanced, but the number of different positive groups was not.
+
+To make the A1 and A2 comparison more consistent, I created new folds by distributing the unique text groups according to their sentiment labels. I kept all copies of a group together and saved the folds for reuse. I repeated the A1 evaluation without changing its model settings or training data.
+
+With the new folds, A1 achieved a pooled out-of-fold macro-F1 of 0.5346 by record and 0.4998 by text group. A simple baseline that always predicted the most common training class achieved 0.2912 and 0.2473 respectively.
+
+For the group-based evaluation, negative F1 was 0.6675, positive F1 was 0.8321 and neutral F1 was 0.0000. Across all 2,520 out-of-fold predictions, the model predicted 413 comments as negative and 2,107 as positive, with no neutral predictions.
+
+These results showed that A1 performed better than the majority baseline, but it still failed to identify neutral comments. Its record-based accuracy of 86.47% did not show this weakness clearly, so I decided not to rely on accuracy alone. The small neutral class and the difference between a three-star rating and neutral wording may contribute to the problem, but I have not established their individual effects.
+
+Before running A2, I decided to change only class weighting to “balanced” and reuse the same folds. I will prefer A2 if its group-based pooled macro-F1 improves by at least 0.02, its neutral F1 increases, its positive recall drops by no more than 0.05, and its group-based macro-F1 improves in at least four of the five folds.
+
+I set these practical comparison rules before seeing A2's results. After this comparison, I plan to review a separate sample of 100 training comments for data quality. The final test remains unused.
