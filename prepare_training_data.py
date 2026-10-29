@@ -2,6 +2,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 import sqlite3
 
+from text_features import tokenize_review
+
 
 def prepare_training_data():
     project_dir = Path(__file__).resolve().parent
@@ -141,7 +143,15 @@ def prepare_training_data():
         )
 
         # Bölmede birlikte tutulacak metinlerin anahtarı.
-        group_key = " ".join(model_content.casefold().split())
+        tokens = tokenize_review(model_content)
+
+        if not tokens:
+            raise ValueError(
+                f"No usable tokens for candidate: {review_id!r}"
+            )
+
+        group_key = tuple(tokens)
+
 
         candidates.append({
             "review_id": review_id,
