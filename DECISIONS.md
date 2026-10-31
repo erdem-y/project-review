@@ -90,3 +90,32 @@ These results showed that A1 performed better than the majority baseline, but it
 Before running A2, I decided to change only class weighting to “balanced” and reuse the same folds. I will prefer A2 if its group-based pooled macro-F1 improves by at least 0.02, its neutral F1 increases, its positive recall drops by no more than 0.05, and its group-based macro-F1 improves in at least four of the five folds.
 
 I set these practical comparison rules before seeing A2's results. After this comparison, I plan to review a separate sample of 100 training comments for data quality. The final test remains unused.
+
+006 — Testing balanced class weights and reviewing training labels
+For A2, I changed only classifier__class_weight to "balanced". This gave more weight to individual records from smaller classes and less weight to records from larger classes. I wanted to see whether this would help the model learn neutral comments, which A1 had not predicted at all.
+
+I kept the same training data, text features and saved validation folds so that I could compare the effect of class weighting without changing other settings. The final test remained unused.
+
+A2 did not meet the comparison rules I had set before running it. Its pooled group-based macro-F1 increased only from 0.4998 to 0.5006, below my required improvement of 0.02. It improved in two of the five folds instead of at least four.
+
+The model became better at finding negative comments, but it also assigned the negative label to more comments that belonged to other classes. Group-based negative recall increased from 0.6311 to 0.9244, while negative precision decreased from 0.7082 to 0.5417. Positive recall dropped from 0.9098 to 0.6112, much more than the maximum drop of 0.05 I had accepted.
+
+Neutral F1 increased from 0.0000 to 0.0822 in the group-based evaluation. However, this improvement was too small to justify the loss in positive recall.
+
+Of the 98 neutral groups, only six were correctly predicted as neutral. The model predicted 74 as negative and 18 as positive. Of its 48 neutral predictions, only six were correct. Another 28 were actually labelled positive and 14 negative, giving neutral precision of 0.1250.
+
+These results made me question what the model was learning from the neutral training labels. Many neutral-labelled comments were predicted as negative. One possible explanation was that three-star comments contained complaints rather than clearly neutral wording. Increasing their weight would not necessarily solve that problem.
+
+I had already been cautious about the neutral class because it had few training records. Among the 130 comments I manually labelled for development and testing, only eight were neutral, around 6.2%. However, these comments were selected using class quotas, so I did not treat this percentage as the neutral share of all reviews.
+
+Before deciding whether to remove neutral from training, I wanted to understand how much of the problem came from the training labels. I reviewed another 100 comments from the training pool: 34 with negative labels, 33 with neutral labels and 33 with positive labels.
+
+The clearest finding was in the neutral group. Of the 33 comments originally labelled neutral, I labelled 21 as negative and seven as positive. Only one remained neutral, while four were unclear.
+
+This showed that star-based neutral labels often did not match the sentiment expressed in this sample. It supported my concern that treating every three-star review as textually neutral was not working well.
+
+I decided to review the remaining neutral training groups before preparing the next training version. There were 98 neutral groups in total, and the sample covered 33 of them, leaving 65 to review.
+
+My next plan is to use the manual decisions to prepare a positive–negative training set. Genuinely neutral and unclear comments will remain stored separately and will not be forced into either class. I will preserve the original comments and ratings.
+
+A1 remains the preferred reference from the A1–A2 comparison. After completing the label review, I plan to train a new binary baseline and then investigate when the model should leave a prediction for manual review.
