@@ -2,8 +2,9 @@
 
 ## 001 — Use a project-specific Python environment
 
-- Decision: I decided to use a Python virtual environment for this project.
-- Reason: It keeps this project's Python packages separate from those used by other projects, helping prevent version conflicts.
+Decision: I decided to use a Python virtual environment for this project.
+
+Reason: It keeps this project's Python packages separate from those used by other projects, helping prevent version conflicts.
 
 ## 002 — Dataset selection and language detection
 
@@ -91,7 +92,8 @@ Before running A2, I decided to change only class weighting to “balanced” an
 
 I set these practical comparison rules before seeing A2's results. After this comparison, I plan to review a separate sample of 100 training comments for data quality. The final test remains unused.
 
-006 — Testing balanced class weights and reviewing training labels
+## 006 — Testing balanced class weights and reviewing training labels
+
 For A2, I changed only classifier__class_weight to "balanced". This gave more weight to individual records from smaller classes and less weight to records from larger classes. I wanted to see whether this would help the model learn neutral comments, which A1 had not predicted at all.
 
 I kept the same training data, text features and saved validation folds so that I could compare the effect of class weighting without changing other settings. The final test remained unused.
