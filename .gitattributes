@@ -1,0 +1,3 @@
+# Preserve the tokenizer bytes recorded in config/B1_frozen.json.
+text_features.py text eol=crlf
+requirements.txt text eol=lf

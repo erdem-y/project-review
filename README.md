@@ -16,7 +16,9 @@ The application returns `positive`, `negative` or `needs_review`. Star ratings a
 
 ## Data and label review
 
-I selected Zoom Cloud Meetings reviews from `Top10_global_apps_by_downloads_playstore_reviews.csv`. After excluding one comment containing only `"None"`, 4,999 records remained.
+I selected 5,000 Zoom Cloud Meetings reviews from [Top 10 Global Apps - Play Store Reviews](https://www.kaggle.com/datasets/nitinchoudhary012/top-10-global-apps-play-store-reviews) on Kaggle. After excluding one comment containing only `"None"`, 4,999 records remained for analysis.
+
+Kaggle lists the dataset license as **Unknown**. The raw CSV, local SQLite database and manual label files stay outside the repository. See [License](#license) for the scope of the project license.
 
 Early models treated three-star training reviews as neutral. Manual review showed why this was unreliable. Among 33 such comments in a 100-comment training audit:
 
@@ -40,6 +42,17 @@ During manual review, I changed the labels of 92 retained training records and e
 B1 uses **2,477 training records in 1,298 text groups**: 530 negative and 1,947 positive records. A text group contains comments with the same token sequence after preprocessing. Groups stay together during data splitting.
 
 Some training labels still come from stars. Genuine neutral and unclear examples were kept outside binary training.
+
+See [the labeling guide](labeling_guide.md) for the manual sentiment rules and examples.
+
+## SQLite and data pipeline
+
+1. [`db.py`](db.py) creates `data/processed/reviews.sqlite3`. [`ingest.py`](ingest.py) reads the CSV with pandas and loads the Zoom reviews into `reviews`, preserving the original comments and stars. The excluded review stays in the table with an exclusion reason.
+2. [`explore.py`](explore.py) saves fastText language candidates in `language_predictions`. The manual review scripts save language, short text and letter-free decisions in separate tables linked by `review_id`.
+3. [`prepare_training_data.py`](prepare_training_data.py) uses SQL `LEFT JOIN`s to combine reviews, language predictions and manual decisions. It selects training candidates and groups equivalent text so copies stay together. [`query_reviews.py`](query_reviews.py) shows how I checked counts and inspected the stored decisions.
+4. [`select_evaluation_data.py`](select_evaluation_data.py) exports comments for manual evaluation and records their group assignments. After I reviewed the training labels, [`train_B1.py`](train_B1.py) used the revised training CSV and checked that development and test groups were excluded.
+
+The training workflow uses local data and intermediate files. You can run the CSV demo below using the model already included in the repository.
 
 ## Decision thresholds
 
@@ -80,14 +93,23 @@ The test contains distinct text groups and is small. Its results do not establis
 
 Developed with Python 3.13 and scikit-learn 1.9.1.
 
+On Windows (PowerShell):
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe predict.py examples\demo_input.csv --output data\processed\demo_predictions.csv
 ```
 
-Prediction requires `text_features.py`, `config/B1_frozen.json` and the matching `models/sentiment_B1.joblib`. The application verifies the model and tokenizer hashes.
+On Linux or macOS:
 
-**The model artifact is not yet distributed with the repository. These instructions currently require the locally prepared model.** Training data and raw reviews are also excluded from Git.
+```bash
+python3.13 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python predict.py examples/demo_input.csv --output data/processed/demo_predictions.csv
+```
+
+The demo uses the included `models/sentiment_B1.joblib` and `config/B1_frozen.json`. The application verifies the model and tokenizer hashes. Git checks out `text_features.py` with the CRLF line endings recorded when the model was frozen.
 
 Input must be a UTF-8 CSV with a `content` column. `review_id` and `score` are optional.
 
@@ -96,10 +118,6 @@ review_id;content;score
 example_1;Good app;5
 example_2;I cannot join the meeting.;1
 example_3;Good app;1
-```
-
-```powershell
-.\.venv\Scripts\python.exe predict.py examples\demo_input.csv --output data\processed\demo_predictions.csv
 ```
 
 If the output file already exists, the application does not overwrite it; use a different output name.
@@ -124,3 +142,7 @@ The model can struggle with mixed feedback, feature requests and positive expres
 I checked CSV processing with ten example rows, including emojis, blank text and conflicting stars. This was an application check, not another accuracy evaluation.
 
 `DECISIONS.md` records my choices and findings. I used AI assistance for explanations, code drafting and debugging, while manually reviewing selected comments, making the project decisions and running the scripts locally.
+
+## License
+
+The original project code and documentation are available under the [MIT License](LICENSE). The source dataset and the fitted B1 model artifact are outside the scope of this license.
