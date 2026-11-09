@@ -121,3 +121,33 @@ I decided to review the remaining neutral training groups before preparing the n
 My next plan is to use the manual decisions to prepare a positive–negative training set. Genuinely neutral and unclear comments will remain stored separately and will not be forced into either class. I will preserve the original comments and ratings.
 
 A1 remains the preferred reference from the A1–A2 comparison. After completing the label review, I plan to train a new binary baseline and then investigate when the model should leave a prediction for manual review.
+
+## 007 — Reviewing training labels, training B1 and setting decision thresholds
+
+After A2, I decided to examine the training labels more closely. Increasing class weights had not solved the neutral problem, and I wanted to understand how much of this came from treating three-star reviews as neutral.
+
+I manually reviewed 100 training groups, followed by the remaining 65 groups originally labelled neutral. Across all 98 original neutral groups, I labelled 55 as negative, 19 as positive, 12 as neutral and 12 as unclear. I also reviewed 30 originally positive groups that both previous models had predicted as negative.
+
+I applied the approved labels to all records within each reviewed text group. For the next model, I included positive and negative records and kept genuinely neutral or unclear records separate.
+
+This left 2,477 training records in 1,298 text groups: 530 negative records and 1,947 positive records. Some labels still came from star ratings, so I did not consider the whole training set manually verified.
+
+I evaluated B1 with five-fold cross-validation, keeping each text group together. With equal weight for each group, pooled out-of-fold macro-F1 was 0.8190 and accuracy was 83.28%. Negative F1 was 0.7689 and positive F1 was 0.8690. The model correctly classified 361 of 518 negative groups and 720 of 780 positive groups.
+
+I did not directly compare this score with A1 or A2 because both the training labels and the number of classes had changed.
+
+Next, I examined the prediction probabilities. Many errors were close to the decision boundary, so I decided to try allowing the model to leave some comments for review:
+
+- Below 0.50 positive probability: negative.
+- At least 0.65 positive probability: positive.
+- Between these thresholds: `needs_review`.
+
+Here, `needs_review` means that the model does not make an automatic decision. It does not mean that the comment is neutral.
+
+On the existing OOF predictions, this rule automatically classified 78.74% of groups, with 90.51% accuracy among those decisions. It made decisions for 76.83% of negative groups, although some of those decisions were incorrect.
+
+Before accepting this band, I decided to check it across three different cross-validation seeds without changing the thresholds. My targets for each seed are at least 75% automatic coverage, 88% accuracy among automatic decisions and 70% negative coverage.
+
+If a result misses a target by no more than one percentage point, I will report it as accepted with tolerance. If any result falls below 74% coverage, 87% accuracy or 69% negative coverage, I will try one additional model combining word and character features.
+
+I chose these practical rules after inspecting the first B1 results, but before running the additional seeds. My aim is to finish a useful project with measured limitations rather than keep experimenting indefinitely.
