@@ -151,3 +151,23 @@ Before accepting this band, I decided to check it across three different cross-v
 If a result misses a target by no more than one percentage point, I will report it as accepted with tolerance. If any result falls below 74% coverage, 87% accuracy or 69% negative coverage, I will try one additional model combining word and character features.
 
 I chose these practical rules after inspecting the first B1 results, but before running the additional seeds. My aim is to finish a useful project with measured limitations rather than keep experimenting indefinitely.
+
+## 008 — Keeping B1, final evaluation and CSV prediction
+
+I checked B1 with the same 0.50–0.65 decision band across three cross-validation seeds. Automatic coverage was between 78.74% and 79.28%, and accuracy among automatic decisions was between 90.51% and 91.13%. All three runs met my targets without using the tolerance allowance. I decided to keep B1 and did not run the additional word-and-character model experiment.
+
+Next, I evaluated the saved model on the manually labelled development comments. Among 26 positive or negative comments, the model made 21 automatic decisions and got 20 correct. I reported the two neutral and two unclear comments separately because the model does not have classes for them.
+
+Before the final test, I saved the thresholds and file hashes in a configuration file. This allowed the test script to check that the model, tokenizer and evaluation files had not changed.
+
+The final test contained 100 comments: 51 negative, 35 positive, 6 neutral and 8 unclear. Among the 86 positive or negative comments, the model made 72 automatic decisions and got 69 correct. This gave 83.72% coverage, 95.83% accuracy among automatic decisions and a macro-F1 of 0.9569 among those decisions.
+
+Across all 100 comments, the model made 81 automatic decisions. However, nine of these were on neutral or unclear comments and were not included in the binary accuracy calculation. Only two of six neutral comments and three of eight unclear comments were sent for review. This showed that the decision band does not reliably identify every neutral or unclear comment.
+
+I kept the model and thresholds unchanged after the final test. These results come from a small test set of distinct text groups, so I do not assume the same performance on every new dataset.
+
+I then added `predict.py` to read comments and save predictions. Star ratings are optional and do not influence the sentiment prediction. The output flags opposing star-based and text-based results without assuming which one is correct.
+
+Empty comments receive `needs_review` without a model probability. Comments with no matching learned features receive a `no_known_features` flag, but this flag does not change the prediction. It is a diagnostic signal, not a verified content-quality filter.
+
+I checked the application with ten example inputs. Identical comments with different stars received identical predictions, skin-tone emoji variants produced the same result, and empty comments and star disagreements were handled as intended. This was an application check, not another measurement of model accuracy.

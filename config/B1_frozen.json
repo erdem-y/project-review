@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "model_name": "B1",
+  "sklearn_version": "1.9.1",
+  "positive_probability_thresholds": {
+    "lower": 0.5,
+    "upper": 0.65
+  },
+  "decision_rule": {
+    "negative": "p < lower",
+    "needs_review": "lower <= p < upper",
+    "positive": "p >= upper"
+  },
+  "input_preparation": "remove U+1F3FB..U+1F3FF before the saved pipeline",
+  "selection_outcome": "KEEP_B1",
+  "final_test_scored_at_freeze": false,
+  "files": {
+    "model": {
+      "path": "models/sentiment_B1.joblib",
+      "sha256": "07067ef66f401aa7c9990a340356f7adbfda481eb2d618bf1c84267caca9bfaa"
+    },
+    "tokenizer": {
+      "path": "text_features.py",
+      "sha256": "a8489e06bb35c26b953febc5cfaae3bdb2673c66c7c93944b0f73dcac02d8cb2"
+    },
+    "training_data": {
+      "path": "data/processed/training_B1_v3.csv",
+      "sha256": "8dff55d233e1329437af3acde1e2f8aea7a5f41793c8d64fef0ef742779c8d97"
+    },
+    "evaluation_labels": {
+      "path": "data/processed/evaluation_v1/labelingyeni.csv",
+      "sha256": "84dd5c63eb28ae1403640df4efe239b71fb0eaee369ae8c69243d57e1c270c41"
+    },
+    "selection_manifest": {
+      "path": "data/processed/evaluation_v1/selection_manifest.json",
+      "sha256": "eba4d4c7f00f24361bc950e1694270e8ef2f1475130339d4525a571781ffd54f"
+    },
+    "development_report": {
+      "path": "reports/B1_dev.json",
+      "sha256": "0a63cb145a424694db5ff4dde7f037b6b5009f0cc4d53b97d5da47bc9e31f10f"
+    },
+    "stability_report": {
+      "path": "reports/B1_threshold_stability.json",
+      "sha256": "43670b546dcb338ebeb90cf74322564fa62f52021d9a8905f8adce5a2a2efc3c"
+    }
+  },
+  "created_at_utc": "2026-11-09T21:26:50.473581+00:00"
+}

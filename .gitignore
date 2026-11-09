@@ -17,3 +17,4 @@ data/
 .pytest_cache/
 # İndirilen hazır model dosyaları
 models/
+/reports/
