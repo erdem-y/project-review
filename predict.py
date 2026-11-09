@@ -243,7 +243,11 @@ def main():
                 decision = "positive"
             else:
                 decision = "needs_review"
-
+                
+            
+                
+            if not known:
+                decision = "needs_review"
             rows[index].update(
                 decision=decision,
                 p_positive=format(float(probability), ".17g"),
