@@ -175,42 +175,44 @@ This does not mean the model is error-free. In the latest test, 44 of 68 neutral
 
 Aggregated counts and metric definitions are included in [`evaluation/B1_external_summary.json`](evaluation/B1_external_summary.json). The raw external comments and annotation files are not included in this repository.
 
-Testing another app and completing the project
+## Testing another app and completing the project
+
 For my last evaluation, I wanted to check whether the model could also handle a larger dataset from another app. I tested it on 5,000 Microsoft Teams reviews using the same B1 model and the fixed 0.59–0.65 decision band. I did not retrain the model or change the thresholds for Teams.
 
 AI labelled the comments before their predictions were examined. There were 3,837 different exact texts; identical copies received the same reference label. None of the review IDs appeared in the previous data. These labels are AI references, not human-verified answers.
-Measure	Latest Zoom test	Microsoft Teams test
-Comments	1,000	5,000
-Automatic decisions	859	4,534
-Automatic coverage	85.90%	90.68%
-Sent for review	141 — 14.10%	466 — 9.32%
-Correct negative decisions	326	1,362
-Positive comments incorrectly labelled negative	35	144
-Correct positive decisions	416	2,696
-Negative comments incorrectly labelled positive	38	137
-Accepted binary accuracy	91.04% — 742/815	93.52% — 4,058/4,339
-Accepted binary macro-F1	0.9093	0.9285
-Negative precision, binary only	90.30%	90.44%
-Positive precision, binary only	91.63%	95.16%
-All negative references correctly identified	79.13%	80.74%
-All positive references correctly identified	80.00%	89.09%
-Accuracy with equal weight per text group	91.02%	90.97%
-Exact reference agreement across all automatic decisions	86.38%	89.50%
 
+| Measure | Latest Zoom test | Microsoft Teams test |
+| --- | ---: | ---: |
+| Comments | 1,000 | **5,000** |
+| Automatic decisions | 859 | **4,534** |
+| Automatic coverage | 85.90% | **90.68%** |
+| Sent for review | 141 — 14.10% | **466 — 9.32%** |
+| Correct negative decisions | 326 | **1,362** |
+| Positive comments incorrectly labelled negative | 35 | **144** |
+| Correct positive decisions | 416 | **2,696** |
+| Negative comments incorrectly labelled positive | 38 | **137** |
+| Accepted binary accuracy | 91.04% — 742/815 | **93.52% — 4,058/4,339** |
+| Accepted binary macro-F1 | 0.9093 | **0.9285** |
+| Negative precision, binary only | 90.30% | **90.44%** |
+| Positive precision, binary only | 91.63% | **95.16%** |
+| All negative references correctly identified | 79.13% | **80.74%** |
+| All positive references correctly identified | 80.00% | **89.09%** |
+| Accuracy with equal weight per text group | 91.02% | **90.97%** |
+| Exact reference agreement across all automatic decisions | 86.38% | **89.50%** |
 
 Accepted binary accuracy, precision and F1 include only automatic decisions on reference-positive/negative comments. Neutral, unclear and review cases are excluded. The last row includes automatic decisions on neutral/unclear references and counts them as disagreements.
 
-Compared with the latest Zoom test, automatic coverage increased by 4.78 percentage points, while the review rate decreased by the same amount. Accepted binary accuracy increased by 2.48 percentage points, and positive precision increased by 3.53 percentage points. Negative precision stayed almost the same. The share of all negative comments correctly identified increased by 1.61 percentage points, while the corresponding positive share increased by 9.09 percentage points.
+Compared with the latest Zoom test, automatic coverage increased by **4.78 percentage points**, while the review rate decreased by the same amount. Accepted binary accuracy increased by **2.48 percentage points**, and positive precision increased by **3.53 percentage points**. Negative precision stayed almost the same. The share of all negative comments correctly identified increased by **1.61 percentage points**, while the corresponding positive share increased by **9.09 percentage points**.
 
 However, I also checked how repeated comments affected these results. Different apps can receive the same short comments, such as “Good” or “Nice”. In the Teams sample, 1,427 comments had token sequences also found in the original Zoom source data.
 
-When every text group received equal weight, accuracy was 90.97%, slightly below the previous Zoom result of 91.02%. Among the remaining 3,573 Teams comments whose token groups were not found in the original Zoom source, automatic coverage was 87.80% and accepted binary accuracy was 90.69%. This showed that the higher record-based score was partly helped by familiar and repeated expressions, while performance on different wording remained similar.
+When every text group received equal weight, accuracy was **90.97%**, slightly below the previous Zoom result of **91.02%**. Among the remaining 3,573 Teams comments whose token groups were not found in the original Zoom source, automatic coverage was **87.80%** and accepted binary accuracy was **90.69%**. This showed that the higher record-based score was partly helped by familiar and repeated expressions, while performance on different wording remained similar.
 
-The limitations also remained. Of 287 neutral or unclear references, 195 received an automatic sentiment label. Therefore, the 93.52% binary accuracy should not be presented as accuracy across every comment. Across all 4,534 automatic decisions, exact reference agreement was 89.50%.
+The limitations also remained. Of 287 neutral or unclear references, 195 received an automatic sentiment label. Therefore, the 93.52% binary accuracy should not be presented as accuracy across every comment. Across all 4,534 automatic decisions, exact reference agreement was **89.50%**.
 
 This larger test from another app gave me more confidence in the version I had selected. I did not see a major performance drop, and some record-based results were higher. It does not prove that the model will perform equally well on every app, but it was enough for the practical goal of this project.
 
-I consider B1 with the 0.59–0.65 decision band the best balance I reached in this project. It automatically handles most comments, identifies a useful share of complaints, and keeps manual review relatively small. I accept that some mistakes remain and have documented them separately.
+I consider **B1 with the 0.59–0.65 decision band the best balance I reached in this project**. It automatically handles most comments, identifies a useful share of complaints, and keeps manual review relatively small. I accept that some mistakes remain and have documented them separately.
 
 I am satisfied with this version and consider the project complete.
 
