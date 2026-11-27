@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "model_name": "B1",
+  "model_sha256": "07067ef66f401aa7c9990a340356f7adbfda481eb2d618bf1c84267caca9bfaa",
+  "tokenizer_sha256": "a8489e06bb35c26b953febc5cfaae3bdb2673c66c7c93944b0f73dcac02d8cb2",
+  "metric_definitions": {
+    "accepted_binary_accuracy": "Correct positive/negative decisions divided by automatic decisions on reference-positive/negative comments; excludes deferrals and neutral/unclear references.",
+    "precision_binary_only": "Class precision among automatic decisions whose references are positive/negative.",
+    "all_coverage": "All automatic decisions divided by all comments.",
+    "correctly_caught": "Correct automatic decisions for a reference class divided by every comment in that reference class, including deferrals.",
+    "all_automatic_exact_reference_agreement": "Correct positive/negative decisions divided by all automatic decisions; automatic sentiment labels on neutral/unclear references count as disagreements."
+  },
+  "limitations": [
+    "External labels are single-AI references, not human-verified gold.",
+    "Training labels are partly derived from star ratings.",
+    "Samples and reference sources differ across tests.",
+    "External sampling excludes known token groups and is not representative of a live review stream.",
+    "The first external sample was later used during threshold exploration.",
+    "The latest band was fixed before collecting and scoring the latest held-out sample."
+  ],
+  "original_final_test": {
+    "records": 100,
+    "reference_type": "human manual labels",
+    "thresholds": {
+      "lower": 0.5,
+      "upper": 0.65
+    },
+    "reference_counts": {
+      "unclear": 8,
+      "positive": 35,
+      "negative": 51,
+      "neutral": 6
+    },
+    "binary_metrics": {
+      "records": 86,
+      "automatic_decisions": 72,
+      "correct_automatic_decisions": 69,
+      "coverage": 0.8372093023255814,
+      "accuracy": 0.9583333333333334,
+      "accepted_macro_f1": 0.9569292123629113,
+      "negative_coverage": 0.8431372549019608,
+      "negative_precision": 0.9761904761904762,
+      "positive_precision": 0.9333333333333333
+    },
+    "all_coverage": 0.81,
+    "automatic_decisions": 81,
+    "counts_by_reference": {
+      "negative": {
+        "negative": 41,
+        "positive": 2,
+        "needs_review": 8
+      },
+      "positive": {
+        "negative": 1,
+        "positive": 28,
+        "needs_review": 6
+      },
+      "neutral": {
+        "negative": 4,
+        "positive": 0,
+        "needs_review": 2
+      },
+      "unclear": {
+        "negative": 1,
+        "positive": 4,
+        "needs_review": 3
+      }
+    },
+    "no_known_features": 0
+  },
+  "first_external_test": {
+    "records": 1000,
+    "reference_type": "AI text-only reference",
+    "thresholds": {
+      "lower": 0.5,
+      "upper": 0.65
+    },
+    "reference_counts": {
+      "neutral": 44,
+      "positive": 468,
+      "negative": 430,
+      "unclear": 58
+    },
+    "metrics": {
+      "binary_records": 898,
+      "automatic_binary_decisions": 697,
+      "correct_automatic_binary_decisions": 638,
+      "incorrect_automatic_binary_decisions": 59,
+      "binary_coverage": 0.7761692650334076,
+      "binary_accepted_accuracy": 0.9153515064562411,
+      "binary_accepted_macro_f1": 0.9128537673373809,
+      "binary_accepted_accuracy_wilson_95_interval": [
+        0.89234122694952,
+        0.9338085287659642
+      ],
+      "negative_coverage_including_positive_misclassifications": 0.7069767441860465,
+      "negative_correctly_caught_of_all_negative": 0.6046511627906976,
+      "negative_precision_binary_only": 0.9454545454545454,
+      "positive_precision_binary_only": 0.8957345971563981,
+      "all_1000_automatic_coverage": 0.741,
+      "automatic_decisions_on_neutral_or_unclear": 44,
+      "exact_reference_agreement_among_all_automatic_decisions": 0.8609986504723347,
+      "record_weighted_notes": "Binary precision and accuracy exclude neutral/unclear. Exact reference agreement among all automatic decisions includes them and treats automatic positive/negative decisions on them as disagreements."
+    },
+    "group_weighted_metrics": {
+      "distinct_groups": 996,
+      "binary_group_weight": 894.0,
+      "automatic_binary_group_weight": 694.0,
+      "binary_group_coverage": 0.7762863534675615,
+      "binary_accepted_group_accuracy": 0.9149855907780979,
+      "binary_accepted_group_macro_f1": 0.9124986376662314
+    },
+    "counts_by_reference": {
+      "negative": {
+        "positive": 44,
+        "needs_review": 126,
+        "negative": 260
+      },
+      "positive": {
+        "positive": 378,
+        "needs_review": 75,
+        "negative": 15
+      },
+      "neutral": {
+        "negative": 9,
+        "needs_review": 21,
+        "positive": 14
+      },
+      "unclear": {
+        "positive": 18,
+        "needs_review": 37,
+        "negative": 3
+      }
+    },
+    "no_known_features": 58,
+    "distinct_token_groups": 996,
+    "overlap_with_original_ids": 0,
+    "overlap_with_original_token_groups": 0
+  },
+  "latest_external_test": {
+    "records": 1000,
+    "reference_type": "AI text-only reference, not human-verified gold",
+    "thresholds": {
+      "lower": 0.59,
+      "upper": 0.65
+    },
+    "reference_counts": {
+      "negative": 412,
+      "positive": 520,
+      "unclear": 24,
+      "neutral": 44
+    },
+    "metrics": {
+      "records": 1000,
+      "binary_records": 932,
+      "automatic_binary_decisions": 815,
+      "correct_automatic_binary_decisions": 742,
+      "wrong_automatic_binary_decisions": 73,
+      "all_automatic_decisions": 859,
+      "all_review_decisions": 141,
+      "all_coverage": 0.859,
+      "binary_coverage": 0.8744635193133047,
+      "accepted_binary_reference_agreement": 0.9104294478527607,
+      "accepted_binary_macro_f1": 0.9093236807010859,
+      "negative_precision_binary_only": 0.9030470914127424,
+      "positive_precision_binary_only": 0.9162995594713657,
+      "negative_correctly_caught": 0.7912621359223301,
+      "positive_correctly_caught": 0.8,
+      "negative_coverage": 0.883495145631068,
+      "neutral_or_unclear_automatic": 44,
+      "all_automatic_exact_reference_agreement": 0.8637951105937136
+    },
+    "group_weighted_metrics": {
+      "distinct_groups": 995,
+      "binary_coverage": 0.8760775862068966,
+      "accepted_binary_reference_agreement": 0.9102091020910209,
+      "accepted_binary_macro_f1": 0.9091446285736156
+    },
+    "counts_by_reference": {
+      "negative": {
+        "negative": 326,
+        "needs_review": 48,
+        "positive": 38
+      },
+      "positive": {
+        "positive": 416,
+        "needs_review": 69,
+        "negative": 35
+      },
+      "neutral": {
+        "positive": 18,
+        "needs_review": 13,
+        "negative": 13
+      },
+      "unclear": {
+        "positive": 7,
+        "negative": 6,
+        "needs_review": 11
+      }
+    },
+    "input_status_counts": {
+      "not_flagged": 948,
+      "no_known_features": 52
+    },
+    "collection_manifest": {
+      "completed_utc": "2026-11-27T00:21:44.467166+00:00",
+      "records": 1000,
+      "distinct_token_groups": 995,
+      "review_id_overlap_with_all_previous_data": 0,
+      "token_group_overlap_with_all_previous_data": 0,
+      "earliest_review_date_as_returned": "2026-07-22T16:23:30",
+      "latest_review_date_as_returned": "2026-11-26T01:07:42",
+      "source_reviews_sha256": "c9f8bab837072db05413aaec797ad22cc3a53410cb01622b9f9390a247b5f118",
+      "confirmation_plan_sha256": "dc3c1eb80e06aa709d3d60eea32ad556cff5e355a4cbba5d5a3bfbab4762e7c9",
+      "excluded": {
+        "previously_seen_review_id": 2346,
+        "previously_seen_token_group": 1045
+      }
+    },
+    "reference_csv_sha256": "8ccd875cf0bac7d0cefc049cc26e208c9ead2ae5e4143c20fefc4a159f6b8de0",
+    "thresholds_selected_before_collection": true,
+    "thresholds_tuned_on_this_sample": false
+  },
+  "model_retrained_between_tests": false,
+  "latest_sample_with_original_policy": {
+    "thresholds": {
+      "lower": 0.5,
+      "upper": 0.65
+    },
+    "counts_by_reference": {
+      "negative": {
+        "negative": 245,
+        "positive": 38,
+        "needs_review": 129
+      },
+      "positive": {
+        "negative": 12,
+        "positive": 416,
+        "needs_review": 92
+      },
+      "neutral": {
+        "negative": 8,
+        "positive": 18,
+        "needs_review": 18
+      },
+      "unclear": {
+        "negative": 3,
+        "positive": 7,
+        "needs_review": 14
+      }
+    },
+    "all_automatic_decisions": 747,
+    "all_review_decisions": 253,
+    "automatic_binary_decisions": 711,
+    "correct_automatic_binary_decisions": 661,
+    "accepted_binary_accuracy": 0.929676511954993,
+    "negative_precision_binary_only": 0.953307392996109,
+    "negative_correctly_caught": 0.5946601941747572,
+    "neutral_unclear_automatic": 36
+  }
+}

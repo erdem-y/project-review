@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "model_name": "B1",
+  "policy_name": "B1_external_059_065",
+  "sklearn_version": "1.9.1",
+  "positive_probability_thresholds": {
+    "lower": 0.59,
+    "upper": 0.65
+  },
+  "decision_rule": {
+    "negative": "p < lower",
+    "needs_review": "lower <= p < upper",
+    "positive": "p >= upper"
+  },
+  "input_preparation": "remove U+1F3FB..U+1F3FF before the saved pipeline",
+  "unknown_feature_policy": "needs_review regardless of probability",
+  "original_final_test_config": "config/B1_frozen.json",
+  "evaluation_summary": "evaluation/B1_external_summary.json",
+  "files": {
+    "model": {
+      "path": "models/sentiment_B1.joblib",
+      "sha256": "07067ef66f401aa7c9990a340356f7adbfda481eb2d618bf1c84267caca9bfaa"
+    },
+    "tokenizer": {
+      "path": "text_features.py",
+      "sha256": "a8489e06bb35c26b953febc5cfaae3bdb2673c66c7c93944b0f73dcac02d8cb2"
+    }
+  }
+}

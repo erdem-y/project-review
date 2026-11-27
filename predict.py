@@ -11,7 +11,7 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parent
-CONFIG_PATH = ROOT / "config" / "B1_frozen.json"
+CONFIG_PATH = ROOT / "config" / "B1_inference.json"
 
 GENERATED = [
     "decision",
@@ -151,9 +151,10 @@ def main():
     if (
         config["model_name"] != "B1"
         or config["schema_version"] != 1
+        or config.get("policy_name") != "B1_external_059_065"
     ):
         raise ValueError(
-            "Unexpected frozen model configuration."
+            "Unexpected B1 inference configuration."
         )
 
     if version("scikit-learn") != config["sklearn_version"]:
@@ -172,8 +173,8 @@ def main():
     lower = thresholds["lower"]
     upper = thresholds["upper"]
 
-    if (lower, upper) != (0.50, 0.65):
-        raise ValueError("Unexpected B1 thresholds.")
+    if (lower, upper) != (0.59, 0.65):
+        raise ValueError("Unexpected B1 inference thresholds.")
 
     # 2. Girdileri doğrula ve modeli yükle.
     rows, scores, fields = load_input(input_path)
@@ -243,9 +244,7 @@ def main():
                 decision = "positive"
             else:
                 decision = "needs_review"
-                
-            
-                
+
             if not known:
                 decision = "needs_review"
             rows[index].update(
@@ -288,7 +287,8 @@ def main():
         dict(Counter(row["input_status"] for row in rows)),
     )
     print("Saved:", output_path)
-    print("Model and thresholds: unchanged.")
+    print(f"Decision thresholds: lower={lower:.2f}, upper={upper:.2f}")
+    print("Model and thresholds: unchanged during this run.")
 
 
 if __name__ == "__main__":

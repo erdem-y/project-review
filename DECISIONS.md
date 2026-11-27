@@ -171,3 +171,25 @@ I then added `predict.py` to read comments and save predictions. Star ratings ar
 Empty comments receive `needs_review` without a model probability. Comments with no matching learned features receive a `no_known_features` flag, but this flag does not change the prediction. It is a diagnostic signal, not a verified content-quality filter.
 
 I checked the application with ten example inputs. Identical comments with different stars received identical predictions, skin-tone emoji variants produced the same result, and empty comments and star disagreements were handled as intended. This was an application check, not another measurement of model accuracy.
+
+## 009 — External testing and selecting the 0.59–0.65 application band
+
+After the original final test, I wanted to check B1 on a larger set of new comments. The first external sample contained 1,000 Zoom reviews labelled by AI from their text. Review IDs and tokenised text groups already present in the original data were excluded. These are AI reference labels, not human-verified answers.
+
+With the original 0.50–0.65 band, the model made 741 automatic decisions and sent 259 comments for review. Among reference-positive/negative comments, 638 of 697 automatic decisions matched, giving 91.54% accuracy. This was below 95.83% in the small manually labelled final test. Automatic coverage fell from 81.00% to 74.10%, and the share of all negative references correctly identified fell from 80.39% to 60.47%. These are different samples and reference sources, so they are not a controlled comparison.
+
+What bothered me was also how many comments needed manual review. My goal was automatic comment analysis, so I wanted to reduce the review workload while keeping mistakes at an acceptable level. I explored 0.56–0.64, 0.56–0.70, 0.56–0.60, returned to 0.56–0.64, and then tried 0.56–0.66, 0.59–0.68, 0.59–0.70 and 0.59–0.65.
+
+I manually examined the 202 comments sent for review under 0.56–0.66. Many comments around 0.55–0.59 expressed negative experiences. This encouraged me to raise the lower threshold to 0.59. I suspect the larger positive training class contributed to some negative comments receiving higher positive probabilities, but I did not isolate the cause.
+
+I also learned that 90 reviewed comments had no recognised TF-IDF features and all received approximately 0.66437. This score came from the classifier's empty-vector output rather than recognised text. By this stage, `predict.py` already sent `no_known_features` comments to `needs_review` regardless of probability. That input check had been added after the original final test; none of its 100 comments triggered it. This supersedes the earlier diagnostic-only behaviour described in decision 008.
+
+I selected 0.59–0.65 before collecting the latest sample of 1,000 comments, excluding IDs and token groups from all earlier data. AI read every text and locked the references before predictions were examined. The band was not adjusted using that sample, and the B1 model was not retrained.
+
+The latest references contained 412 negative, 520 positive, 44 neutral and 24 unclear comments. The selected policy made 859 automatic decisions and sent 141 for review. Among 932 positive/negative references, it made 815 automatic decisions: 742 matched and 73 did not. Accuracy was 91.04%, macro-F1 was 0.9093, negative precision was 90.30% and positive precision was 91.63%. It correctly identified 326 of 412 negative comments and 416 of 520 positive comments.
+
+On the same latest sample, changing only the lower threshold from 0.50 to 0.59 increased automatic decisions from 747 to 859 and reduced review from 253 to 141. Correct negative decisions increased from 245 to 326, while incorrect negative decisions on positive comments increased from 12 to 35. Binary accuracy decreased from 92.97% to 91.04%. I accepted this precision–recall trade-off because the system identified more complaints and left fewer understandable comments for manual review.
+
+The review band still does not reliably detect neutral or unclear text: 44 of 68 such references received automatic sentiment labels. Across all automatic decisions, exact reference agreement was 742/859 = 86.38%. I report this separately from binary accuracy. The external samples exclude previously seen text groups and are not representative live-stream or prospective future-review samples.
+
+The active application policy is saved in `config/B1_inference.json`: negative below 0.59, review from 0.59 to below 0.65, and positive at 0.65 or above. Empty and no-known-feature inputs still require review. `predict.py` reads this active policy and verifies the same model and tokenizer hashes. The historical `config/B1_frozen.json`, original evaluation scripts and test results retain 0.50–0.65. Aggregated external evidence is saved in `evaluation/B1_external_summary.json` without raw review text.

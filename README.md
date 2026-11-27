@@ -2,7 +2,9 @@
 
 A Python application that classifies review sentiment and flags disagreements with star ratings.
 
-**Frozen B1 test:** 69 of 72 automatic decisions were correct; 14 of 86 positive/negative comments were sent for review. Neutral and unclear comments were evaluated separately.
+**Current policy:** B1 uses the 0.59–0.65 decision band. In the latest external check, 859 of 1,000 comments received automatic decisions. Against AI references, 742 of 815 automatic decisions on positive/negative comments matched (91.04%); 44 neutral/unclear comments also received automatic sentiment labels.
+
+**Original frozen test:** with the earlier 0.50–0.65 band and manual labels, 69 of 72 automatic positive/negative decisions were correct. The two evaluations use different samples and reference labels.
 
 **Main limitation:** neutral, unclear and mixed comments can still receive incorrect sentiment predictions.
 
@@ -58,15 +60,17 @@ The training workflow uses local data and intermediate files. You can run the CS
 
 | Positive probability | Decision |
 | --- | --- |
-| Below 0.50 | `negative` |
-| 0.50 to below 0.65 | `needs_review` |
+| Below 0.59 | `negative` |
+| 0.59 to below 0.65 | `needs_review` |
 | At least 0.65 | `positive` |
 
-I chose this band by inspecting OOF probabilities from the first seed. I then repeated grouped five-fold cross-validation with two more seeds without changing it. This checked sensitivity to the fold split; it was not independent validation of the chosen thresholds.
+The current application uses [`config/B1_inference.json`](config/B1_inference.json). The original 0.50–0.65 policy remains recorded in [`config/B1_frozen.json`](config/B1_frozen.json) for the historical final evaluation.
 
-Across three cross-validation seeds (equal weight per text group), automatic coverage ranged from **78.74% to 79.28%**, accuracy among automatic decisions from **90.51% to 91.13%**, and negative coverage from **76.06% to 76.83%**.
+I originally chose the 0.50–0.65 band by inspecting OOF probabilities from the first seed. I then repeated grouped five-fold cross-validation with two more seeds without changing it. This checked sensitivity to the fold split; it was not independent validation of the chosen thresholds.
 
-## Final evaluation
+For that original band, across three cross-validation seeds (equal weight per text group), automatic coverage ranged from **78.74% to 79.28%**, accuracy among automatic decisions from **90.51% to 91.13%**, and negative coverage from **76.06% to 76.83%**.
+
+## Original final evaluation (0.50–0.65)
 
 I used the development set for a behaviour check, then froze the model, thresholds and file hashes before evaluating 100 final test comments.
 
@@ -87,7 +91,89 @@ For the 86 positive/negative test comments:
 
 Across all 100 comments, 81 received automatic decisions. Nine were neutral or unclear and are excluded from the binary accuracy above. Only **2 of 6 neutral** and **3 of 8 unclear** comments were sent for review.
 
-The test contains distinct text groups and is small. Its results do not establish performance on a live stream of reviews. The model and thresholds were not changed after the final test.
+The test contains distinct text groups and is small. Its results do not establish performance on a live stream of reviews. These results describe the original frozen policy. I later selected a new application band using external data, as explained below; the original test report and frozen configuration are preserved.
+
+## External testing and threshold changes
+
+After the final test, I wanted to see how the model would perform on a larger set of new comments. I collected 1,000 new Zoom reviews and used AI to label them based on their text, without using their star ratings or individual model predictions. Comments matching the original data by review ID or tokenised text group were excluded.
+
+These AI labels were reference labels, not human-verified answers. The original final test used comments I labelled manually, so I kept this difference in mind when comparing the results.
+
+In the first external test, the model automatically classified 741 comments and sent 259 for review. Among comments labelled positive or negative, it made 697 automatic decisions, with 638 matching the references. Accuracy was 91.54%, compared with 95.83% in the original final test. Automatic coverage also fell from 81.00% to 74.10%. The share of negative comments correctly identified fell from 80.39% to 60.47%, while the share of positive comments correctly identified stayed similar, increasing from 80.00% to 80.77%.
+
+What bothered me was not only the lower scores, but also how many comments needed manual review. Since the purpose of my project was to analyse comments automatically, sending around a quarter of them back to a person felt too much. My goal was to reduce manual review while keeping mistakes at an acceptable level. I did not want to improve accuracy simply by avoiding difficult comments.
+
+I explored these decision bands during the process:
+
+`0.50–0.65 → 0.56–0.64 → 0.56–0.70 → 0.56–0.60 → 0.56–0.64 → 0.56–0.66 → 0.59–0.68 → 0.59–0.70 → 0.59–0.65`
+
+During the external testing, the 0.56–0.66 band sent 202 comments for review. I manually examined their text, probabilities and review reasons. Many comments around 0.55–0.59 expressed negative experiences but were still being sent for review. This encouraged me to move the lower threshold to 0.59.
+
+Some negative comments received positive probabilities above 0.50. This suggested that the model leaned towards positive predictions in some cases. I think the training distribution may partly explain this, because it contained considerably more positive than negative records. I did not separately measure how much of this behaviour came from that imbalance.
+
+I also learned that 90 comments in that review list had no features recognised by the model. They all received approximately the same probability, 0.66437. This was the classifier's output for an empty feature vector, rather than a judgement based on understanding those comments. A separate input check already sent them for review regardless of the thresholds.
+
+I settled on 0.59–0.65 and fixed it before collecting another 1,000 comments. The latest sample did not overlap the original data or any earlier external download by review ID or tokenised text group. AI labelled every comment before its predictions were examined. I did not adjust the band using this last sample, and the B1 model remained unchanged.
+
+The external samples were collected from Google Play in newest-first order using en/us store settings. Older reviews were reached after excluding previous data. Previously seen text groups were excluded, so these are novel-text samples, not representative samples of the full live review stream. This does not guarantee that every comment is English. They are also not prospective tests on future reviews.
+
+| Measure | Original final test | First external test | Latest external test |
+| --- | ---: | ---: | ---: |
+| Comments | 100 | 1,000 | 1,000 |
+| Decision band | 0.50–0.65 | 0.50–0.65 | **0.59–0.65** |
+| Reference labels | Manual | AI | AI |
+| Negative references | 51 | 430 | 412 |
+| Positive references | 35 | 468 | 520 |
+| Neutral references | 6 | 44 | 44 |
+| Unclear references | 8 | 58 | 24 |
+| Automatic decisions | 81 | 741 | **859** |
+| Automatic coverage | 81.00% | 74.10% | **85.90%** |
+| Sent for review | 19 | 259 | **141** |
+| Correct negative decisions | 41 | 260 | **326** |
+| Positive comments incorrectly labelled negative | 1 | 15 | **35** |
+| Correct positive decisions | 28 | 378 | **416** |
+| Negative comments incorrectly labelled positive | 2 | 44 | **38** |
+| Accepted binary accuracy | 95.83% — 69/72 | 91.54% — 638/697 | **91.04% — 742/815** |
+| Accepted binary macro-F1 | 0.9569 | 0.9129 | **0.9093** |
+| Negative precision, binary only | 97.62% | 94.55% | **90.30%** |
+| Positive precision, binary only | 93.33% | 89.57% | **91.63%** |
+| All negative references correctly identified | 80.39% | 60.47% | **79.13%** |
+| All positive references correctly identified | 80.00% | 80.77% | **80.00%** |
+| Neutral/unclear comments given an automatic sentiment | 9 | 44 | **44** |
+| Exact reference agreement across all automatic decisions | 85.19% | 86.10% | **86.38%** |
+
+Accepted binary accuracy, precision and F1 include only automatically classified comments whose reference label was positive or negative. They exclude review decisions and neutral/unclear references. The last row includes neutral/unclear references and counts automatic sentiment decisions on them as disagreements.
+
+The latest test had this distribution:
+
+| Reference label | Negative decision | Positive decision | Sent for review |
+| --- | ---: | ---: | ---: |
+| Negative | 326 | 38 | 48 |
+| Positive | 35 | 416 | 69 |
+| Neutral | 13 | 18 | 13 |
+| Unclear | 6 | 7 | 11 |
+| **Total** | **380** | **479** | **141** |
+
+To isolate the threshold effect, I also compared the original policy with the selected policy on this same latest sample. This was a comparison against the existing baseline, not another search for a new band.
+
+| Measure on the latest 1,000 comments | 0.50–0.65 | 0.59–0.65 |
+| --- | ---: | ---: |
+| Automatic decisions | 747 | **859** |
+| Sent for review | 253 | **141** |
+| Correct negative decisions | 245 | **326** |
+| Incorrect negative decisions on positive comments | 12 | **35** |
+| Accepted binary accuracy | 92.97% | **91.04%** |
+| Negative precision, binary only | 95.33% | **90.30%** |
+| All negative references correctly identified | 59.47% | **79.13%** |
+| Neutral/unclear comments given an automatic sentiment | 36 | **44** |
+
+Raising the lower threshold produced 81 additional correct negative decisions, but also 23 additional incorrect negative decisions and negative labels for eight additional neutral/unclear comments. Positive decisions stayed unchanged because the upper threshold remained at 0.65.
+
+I was satisfied with this precision–recall trade-off. For my project, correctly identifying more complaints and sending fewer comments for review was more useful than keeping higher precision while leaving many understandable comments unclassified. I therefore selected **0.59–0.65 as the final application decision band**.
+
+This does not mean the model is error-free. In the latest test, 44 of 68 neutral/unclear comments still received an automatic sentiment. The samples also have different class distributions, so the changes between tests cannot be attributed only to thresholds. The AI references may contain mistakes and were produced by the same AI annotator. The first external sample was later used during threshold exploration; the last sample was held out until the new band had been selected.
+
+Aggregated counts and metric definitions are included in [`evaluation/B1_external_summary.json`](evaluation/B1_external_summary.json). The raw external comments and annotation files are not included in this repository.
 
 ## Running predictions
 
@@ -109,7 +195,7 @@ python3.13 -m venv .venv
 .venv/bin/python predict.py examples/demo_input.csv --output data/processed/demo_predictions.csv
 ```
 
-The demo uses the included `models/sentiment_B1.joblib` and `config/B1_frozen.json`. The application verifies the model and tokenizer hashes. Git checks out `text_features.py` with the CRLF line endings recorded when the model was frozen.
+The demo uses the included `models/sentiment_B1.joblib` and the current `config/B1_inference.json` policy with thresholds 0.59 and 0.65. `config/B1_frozen.json` preserves the original test policy. The application verifies the model and tokenizer hashes. Git checks out `text_features.py` with the CRLF line endings recorded when the model was frozen.
 
 Input must be a UTF-8 CSV with a `content` column. `review_id` and `score` are optional.
 
@@ -131,7 +217,7 @@ Original columns are preserved. The output adds:
 | `input_status` | `empty`, `no_known_features` or `not_flagged` |
 | `star_text_disagreement` | Opposing star group and text decision |
 
-Blank inputs receive `needs_review` with no probability. Inputs with no learned feature matches also receive `needs_review`; their model score is retained for diagnosis. After the final test, I added an input check that sends comments with no known TF-IDF features to `needs_review`. A later check found that none of the 100 final test comments triggered this rule, so it does not change the reported test decisions. The model and thresholds remain unchanged.
+Blank inputs receive `needs_review` with no probability. Inputs with no learned feature matches also receive `needs_review`; their model score is retained for diagnosis. After the final test, I added an input check that sends comments with no known TF-IDF features to `needs_review`. A later check found that none of the 100 final test comments triggered this rule, so it does not change the reported test decisions. The model remains unchanged; the current 0.59–0.65 application policy is documented separately from the historical test policy.
 
 Star disagreement is `true` for positive text predictions with 1–2 stars or negative predictions with 4–5 stars. It is `false` when these agree, and empty for three stars, missing ratings or `needs_review`.
 
@@ -141,7 +227,7 @@ The model can struggle with mixed feedback, feature requests and positive expres
 
 I checked CSV processing with ten example rows, including emojis, blank text and conflicting stars. This was an application check, not another accuracy evaluation.
 
-`DECISIONS.md` records my choices and findings. I used AI assistance for explanations, code drafting and debugging, while manually reviewing selected comments, making the project decisions and running the scripts locally.
+`DECISIONS.md` records my choices and findings. I used AI assistance for explanations, code drafting and debugging, while manually reviewing selected comments, making the project decisions and running the project scripts locally. AI also collected, labelled and evaluated the external samples, which are reported separately from the manual final test.
 
 ## License
 
